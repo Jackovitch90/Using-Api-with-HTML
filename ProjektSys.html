@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Jacob</title>
+
+  <style>
+    div {
+    border: 2px solid blueviolet;
+    padding: 5px;
+    margin: 5px;
+  } 
+  
+
+</style>
+
+    
+</head>
+
+<body>
+    <a href="" onclick="homeFunction(true)">Hemma</a> <a href="" onclick="homeFunction(false)">Går ut</a> 
+
+  <div id="tunnelbanadiv"></div>
+  <div id="weatherdiv"></div> 
+  <div id="clockdiv"></div>
+  <div id="chuckdiv"></div> 
+  <div id="newsdiv"></div> 
+  <div id="jokediv"></div> 
+  <div id="datadiv"></div>
+
+  <script language="javascript">
+
+    const tunnelbanadiv = document.getElementById('tunnelbanadiv');
+    const weatherdiv = document.getElementById('weatherdiv');
+    const clockdiv = document.getElementById('clockdiv');
+    const chuckdiv = document.getElementById('chuckdiv');
+    const newsdiv = document.getElementById('newsdiv');
+    const jokediv = document.getElementById('jokediv'); 
+    const datadiv = document.getElementById('datadiv');
+
+    const uri = 'https://cors-anywhere.herokuapp.com/http://api.sl.se/api2/realtimedeparturesV4.json?key=f459c34481344368ae80b0681d76dbcc&siteid=9261&timewindow=20';
+      
+    const uri1 =  'http://api.openweathermap.org/data/2.5/weather?q=Stockholm&Appid=bf114fd85fdc893ab8372d67d285a720&units=metric'; 
+    
+    const uri2 = 'https://cors-anywhere.herokuapp.com/http://worldtimeapi.org/api/timezone/Europe/Stockholm';
+
+    const uri3 = 'http://api.icndb.com/jokes/random/3';
+
+    const uri4 = 'https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=6efd4bad12f547f8a53c76d53c27f3f8';
+
+    const uri5 = 'https://sv443.net/jokeapi/category/Programming'; 
+    
+    const uri6 = 'http://5cd130d3d4a78300147be5b3.mockapi.io/Home';
+    //---------------------SL Tidatabell------------------------------
+    fetch(uri)
+      .then((resp) => resp.json())
+      .then(function (data) 
+      {
+        let departures = data.ResponseData.Metros; //ResponseData och Metros är ord som SL valt.
+        return departures.map(function (departure) 
+        {
+            let Tåg = document.createElement('div');
+
+            var devtext = "";
+
+            // Här kollar vi om det finns avvikelser i trafiken, t ex "Inställd"
+            if(departure.Deviations != null)
+            {
+                for(var i = 0; i < departure.Deviations.length; i++) 
+                {
+                    var obj = departure.Deviations[i];
+                    devtext += obj.Text;
+                }
+            }
+
+            Tåg.innerHTML += `${departure.GroupOfLine + " :Tid " + departure.DisplayTime + ": Linje " + departure.LineNumber + "Mot:" +departure.Destination + devtext}`;
+            tunnelbanadiv.appendChild(Tåg);
+        })
+      })
+      .catch(function (error) 
+      {
+        console.log(error);
+      });
+    //-----------------Temperatur--------------------------
+      fetch(uri1)
+        .then((resp) => resp.json())
+        .then( data =>
+            {
+              let divtag = document.createElement('div');
+              divtag.innerHTML = `Stockholm Temp: ${data.main.temp} °C`;
+              weatherdiv.appendChild(divtag); 
+            }); 
+    //-------------------Klocka--------------------------------
+      fetch(uri2)
+        .then(clockResp => clockResp.json())
+        .then(clockData =>
+        {
+          let divtag = document.createElement('div');
+          divtag.innerHTML = `Klockslag i Stockholm: ${clockData.datetime.substring(11,16)}`;
+          clockdiv.appendChild(divtag);
+            
+        });
+    //--------------------Chuck Norris Quotes------------------------------------
+      fetch(uri3)  
+       .then(ChuckResp => ChuckResp.json())
+       .then(Chuckdata => 
+        { 
+            let jokes = Chuckdata.value 
+            return jokes.map(function (jokeobj)
+            {
+            
+              let divtag = document.createElement('div'); 
+              divtag.innerHTML = `Chuck Norris Quotes: ${jokeobj.joke}`;
+              chuckdiv.appendChild(divtag);
+            })
+
+        });
+    //-----------------------Nyheter-----------------------------------
+      fetch(uri4)  
+      .then(NewsResp => NewsResp.json())
+      .then(Newsdata => 
+      {
+         let news = Newsdata.articles
+         return news.map(function (newsobj)
+         {
+             let divtag = document.createElement('div'); 
+             divtag.innerHTML += `News; ${newsobj.title}`; 
+             newsdiv.appendChild(divtag); 
+         })
+
+
+      });
+    //---------------------Random Skämt-----------------------------
+    fetch(uri5)
+    .then(JokeResp => JokeResp.json())
+    .then(JokeData => 
+    { 
+        let divtag = document.createElement('div');
+        divtag.innerHTML = `Random Joke: ${JokeData.joke} `; 
+        jokediv.appendChild(divtag); 
+
+    });
+
+   //----------------------Post Knappar---------------------------------------
+    
+  fetch(uri6)
+      .then((resp) => resp.json())
+      .then(function (datas) 
+      {
+        return datas.map(function (data) 
+        {
+            let divtag = document.createElement('div'); 
+            divtag.innerHTML = `${data.name} - ${data.isHome}`;
+            datadiv.appendChild(divtag);
+        })       
+      });
+
+
+      function homeFunction(isHomeNow)
+      {
+        var data = {name: "Jacob", isHome: isHomeNow};
+
+        fetch(uri6, 
+        {
+          method: 'post', 
+          headers:
+          {
+            'Accept' : 'application/json, text/plain, */*',
+            'Content-Type' : 'application/json'
+          },
+          body: JSON.stringify(data)
+        }).then(res => res.json())
+        .then(res => console.log(res))
+        }
+
+   
+
+</script>
+
+<script type="text/javascript">
+//------------------------SJ Regional Tåg--------------------------------------
+    var Stations = new Array();
+    $(document).ready(function () {
+        $.support.cors = true; // Enable Cross domain requests
+        try {
+            $.ajaxSetup({
+                url: "https://api.trafikinfo.trafikverket.se/v2/data.json",
+                error: function (msg) {
+                    if (msg.statusText == "abort") return;
+                    alert("Request failed: " + msg.statusText + "\n" + msg.responseText);
+                }
+            });
+        }
+        catch (e) { alert("Ett fel uppstod vid initialisering."); }
+        // Create an ajax loading indicator
+        var loadingTimer;
+        $("#loader").hide();
+        $(document).ajaxStart(function () {
+            loadingTimer = setTimeout(function () {
+                $("#loader").show();
+            }, 200);
+        }).ajaxStop(function () {
+            clearTimeout(loadingTimer);
+            $("#loader").hide();
+        });
+        // Load stations
+        PreloadTrainStations();
+    });
+
+    function PreloadTrainStations() {
+        // Request to load all stations
+        var xmlRequest = "<REQUEST>" +
+                            // Use your valid authenticationkey
+                            "<LOGIN authenticationkey='b4e0b35392b64579ba7b96ea80a8953a'/>" +
+                            "<QUERY objecttype='TrainStation' schemaversion='1'>" +
+                                "<FILTER/>" +
+                                "<INCLUDE>Prognosticated</INCLUDE>" +
+                                "<INCLUDE>AdvertisedLocationName</INCLUDE>" +
+                                "<INCLUDE>LocationSignature</INCLUDE>" +
+                            "</QUERY>" +
+                         "</REQUEST>";
+        $.ajax({
+            type: "POST",
+            contentType: "text/xml",
+            dataType: "json",
+            data: xmlRequest,
+            success: function (response) {
+                if (response == null) return;
+                try {
+                    var stationlist = [];
+                    $(response.RESPONSE.RESULT[0].TrainStation).each(function (iterator, item)
+                    {
+                        // Save a key/value list of stations
+                        Stations[item.LocationSignature] = item.AdvertisedLocationName;
+                        // Create an array to fill the search field autocomplete.
+                        if (item.Prognosticated == true)
+                            stationlist.push({ label: item.AdvertisedLocationName, value: item.LocationSignature });
+                    });
+                    fillSearchWidget(stationlist);
+                }
+                catch (ex) { }
+            }
+        });
+    }
+
+    function fillSearchWidget(data) {
+        $("#station").val("");
+        $("#station").autocomplete({
+            // Make the autocomplete fill with matches that "starts with" only
+            source: function (request, response) {
+                var matches = $.map(data, function (tag) {
+                    if (tag.label.toUpperCase().indexOf(request.term.toUpperCase()) === 0) {
+                        return {
+                            label: tag.label,
+                            value: tag.value
+                        }
+                    }
+                });
+                response(matches);
+            },
+            select: function (event, ui) {
+                var selectedObj = ui.item;
+                $("#station").val(selectedObj.label);
+                // Save selected stations signature
+                $("#station").data("sign", selectedObj.value);
+                return false;
+            },
+            focus: function (event, ui) {
+                var selectedObj = ui.item;
+                // Show station name in search field
+                $("#station").val(selectedObj.label);
+                return false;
+            }
+        });
+    }
+
+    function Search() {
+        var sign = $("#station").data("sign");
+        // Clear html table
+        $('#timeTableDeparture tr:not(:first)').remove();
+
+        // Request to load announcements for a station by its signature
+        var xmlRequest = "<REQUEST>" +
+                            "<LOGIN authenticationkey='b4e0b35392b64579ba7b96ea80a8953a' />" +
+                            "<QUERY objecttype='TrainAnnouncement' " +
+                                "orderby='AdvertisedTimeAtLocation' schemaversion='1'>" +
+                                "<FILTER>" +
+                                "<AND>" +
+                                    "<OR>" +
+                                        "<AND>" +
+                                            "<GT name='AdvertisedTimeAtLocation' " +
+                                                        "value='$dateadd(-00:15:00)' />" +
+                                            "<LT name='AdvertisedTimeAtLocation' " +
+                                                        "value='$dateadd(14:00:00)' />" +
+                                        "</AND>" +
+                                        "<GT name='EstimatedTimeAtLocation' value='$now' />" +
+                                    "</OR>" +
+                                    "<EQ name='LocationSignature' value='" + sign + "' />" +
+                                    "<EQ name='ActivityType' value='Avgang' />" +
+                                "</AND>" +
+                                "</FILTER>" +
+                                // Just include wanted fields to reduce response size.
+                                "<INCLUDE>InformationOwner</INCLUDE>" +
+                                "<INCLUDE>AdvertisedTimeAtLocation</INCLUDE>" +
+                                "<INCLUDE>TrackAtLocation</INCLUDE>" +
+                                "<INCLUDE>FromLocation</INCLUDE>" +
+                                "<INCLUDE>ToLocation</INCLUDE>" +
+                            "</QUERY>" +
+                            "</REQUEST>";
+        $.ajax({
+            type: "POST",
+            contentType: "text/xml",
+            dataType: "json",
+            data: xmlRequest,
+            success: function (response) {z
+                if (response == null) return;
+                if (response.RESPONSE.RESULT[0].TrainAnnouncement == null)
+                    jQuery("#timeTableDeparture tr:last").
+                        after("<tr><td colspan='4'>Inga avgångar hittades</td></tr>");
+                try {
+                    renderTrainAnnouncement(response.RESPONSE.RESULT[0].TrainAnnouncement);
+                }
+                catch (ex) { }
+            }
+        });
+    }
+
+    function renderTrainAnnouncement(announcement) {
+        $(announcement).each(function (iterator, item) {
+            var advertisedtime = new Date(item.AdvertisedTimeAtLocation);
+            var hours = advertisedtime.getHours()
+            var minutes = advertisedtime.getMinutes()
+            if (minutes < 10) minutes = "0" + minutes
+            var toList = new Array();
+            $(item.ToLocation).each(function (iterator, toItem) {
+                toList.push(Stations[toItem]);
+            });
+            var owner = "";
+            if (item.InformationOwner != null) owner = item.InformationOwner;
+            jQuery("#timeTableDeparture tr:last").
+                after("<tr><td>" + hours + ":" + minutes + "</td><td>" + toList.join(', ') +
+                "</td><td>" + owner + "</td><td style='text-align: center'>" + item.TrackAtLocation +
+                "</td></tr>");
+        });
+    }
+
+</script>
+</head>
+<body>
+<div>
+    <input id="station" type="text" />
+    <input type="button" value="Visa" onclick="javascript: Search()" />
+    <span id="loader" style="margin-left: 10px">Laddar data ...</span>
+</div>
+<div id="result">
+    <h3>Avgående tåg</h3>
+    <table border="1" id="timeTableDeparture">
+                  <tr>
+                    <th scope="col" style="width:40px;">Tid</th>
+                    <th scope="col" style="width:200px;">Till</th>
+                    <th scope="col" style="width:80px;"></th>
+                    <th scope="col"  style="width:80px;">Spår</th>
+                  </tr>
+                </table>
+              </div>
+</body>
+</html>
